@@ -40,12 +40,12 @@ function updateStatus() {
 function updateProgressBar(progress) {
     const progressBar = document.getElementById('progressbar');
     progressBar.style.width = progress + '%';
-    progressBar.style.backgroundColor = `hsl(${(120 * progress) / 100}, 75%, 62%)`;  // Color gradient from red to green
+    progressBar.style.backgroundColor = `hsl(${120 - (120 * progress) / 100}, 75%, 62%)`;  // Color gradient from red to green
 }
 
 function updateMemoryStatus(free, total) {
     const memoryStatus = document.getElementById('memory-status');
-    memoryStatus.textContent = `${free}MB / ${total}MB Free`;
+    memoryStatus.textContent = `${free}MB / ${total}MB`;
 }
 
 function allowDrop(event) {
@@ -341,7 +341,7 @@ function loadDirectoryContents(path) {
                 }
 
                 const sizeCell = document.createElement('td');
-                sizeCell.textContent = file.isDirectory ? '-' : `${file.size} B`;
+                sizeCell.textContent = file.isDirectory ? '-' : `${file.size}`;
 
                 row.appendChild(selectCell);
                 row.appendChild(nameCell);
