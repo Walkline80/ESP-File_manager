@@ -1,0 +1,6 @@
+www/
+#www/scripts.js
+filemanager.py
+utilities.py
+web_server.py
+#__init__.py
