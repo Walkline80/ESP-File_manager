@@ -690,6 +690,8 @@ def install():
 		with open(f'{module_folder}/{file}', 'wb') as output:
 			output.write(content)
 
-	import filemanager.__init__
+	import sys
+	sys.modules.pop('filemanager')
+	import filemanager
 
 install()
