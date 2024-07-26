@@ -8,10 +8,10 @@ init = r'''import gc
 from micropython import alloc_emergency_exception_buf
 from .utilities import connect_to_wifi
 from .web_server import WebServer
-from .filemanager import *
+from .web_handler import *
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 module_folder = 'filemanager'
 
 try:
@@ -72,7 +72,7 @@ if connect_to_wifi():
 	gc.collect()
 '''.encode()
 
-filemanager = r'''import os
+web_handler = r'''import os
 import json
 import socket
 import binascii
@@ -492,7 +492,8 @@ def connect_to_wifi() -> bool:
 		return True
 	else:
 		print(f'Connect wifi failed with status code: {status}')
-		return False'''.encode()
+		return False
+'''.encode()
 
 web_server = r'''import network
 import socket
@@ -656,7 +657,7 @@ file_list = {
 	'www/scripts.js': scripts,
 	'www/styles.css': styles,
 	'__init__.py': init,
-	'filemanager.py': filemanager,
+	'web_handler.py': web_handler,
 	'utilities.py': utilities,
 	'web_server.py': web_server
 }
@@ -666,43 +667,29 @@ import os
 
 
 module_folder = '/filemanager'
-www_root = f'{module_folder}/www'
 
-try:
-	os.mkdir(module_folder)
-except OSError:
-	pass
+def install():
+	def mkdir(path: str):
+		try:
+			os.mkdir(path)
+		except OSError:
+			pass
 
-try:
-	os.mkdir(www_root)
-except OSError:
-	pass
+	def mkdirs(paths: list):
+		cwd = module_folder
 
-os.chdir(module_folder)
+		for folder in paths:
+			cwd += '/' + folder
+			mkdir(cwd)
 
-with open('__init__.py', 'wb') as output:
-	output.write(init)
+	mkdir(module_folder)
 
-with open('filemanager.py', 'wb') as output:
-	output.write(filemanager)
+	for file, content in file_list.items():
+		mkdirs(file.split('/')[:-1])
 
-with open('utilities.py', 'wb') as output:
-	output.write(utilities)
+		with open(f'{module_folder}/{file}', 'wb') as output:
+			output.write(content)
 
-with open('web_server.py', 'wb') as output:
-	output.write(web_server)
+	import filemanager.__init__
 
-os.chdir(www_root)
-
-with open('index.html', 'wb') as output:
-	output.write(index)
-
-with open('scripts.js', 'wb') as output:
-	output.write(scripts)
-
-with open('styles.css', 'wb') as output:
-	output.write(styles)
-
-os.chdir('/')
-
-print('Done')
+install()

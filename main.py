@@ -2,10 +2,10 @@ import gc
 from micropython import alloc_emergency_exception_buf
 from utilities import connect_to_wifi
 from web_server import WebServer
-from filemanager import *
+from web_handler import *
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 module_folder = ''
 
 try:
@@ -23,7 +23,7 @@ gc.collect()
 # Start WWW serveru
 webserver = WebServer(web_folder=f'/{module_folder}/www', port=80)
 
-#region Handlers for filemanager
+#region Handlers for web_handlers
 @webserver.handle('/contents')
 def _handle_contents(client, path, request):
 	handle_contents(client, path, request)
