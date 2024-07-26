@@ -161,7 +161,7 @@ def handle_download(client: socket.socket, path: str, request):
 		file_name = file_path.split('/')[-1]
 
 		if file_path_exists(file_path):
-			client.send(f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=\"{file_name}\"\r\n\r\n")
+			client.send(f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=\"{file_name}\"\r\nContent-Length: {os.stat(file_path)[6]}\r\n\r\n")
 			with open(file_path, 'rb') as f:
 				for piece in read_in_chunks(f):
 					client.write(piece)
