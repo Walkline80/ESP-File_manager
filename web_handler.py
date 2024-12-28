@@ -1,8 +1,22 @@
+"""
+Copyright © 2024 Walkline Wang (https://walkline.wang)
+Github: https://github.com/Walkline80/ESP-File_manager
+Forked: https://github.com/mispacek/ESP-File_manager
+"""
 import os
 import json
 import socket
 import binascii
-from utilities import (
+
+try:
+	from utilities import (
+		is_directory,
+		read_in_chunks,
+		convert_file_size,
+		file_path_exists,
+	)
+except ImportError:
+	from .utilities import (
 	is_directory,
 	read_in_chunks,
 	convert_file_size,
@@ -62,7 +76,6 @@ def list_directory_contents(base_path: str):
 
 def delete_path(path: str):
 	if not file_path_exists(path):
-		print(f"Path {path} does not exist.")
 		return
 
 	stack = [path]
@@ -76,7 +89,6 @@ def delete_path(path: str):
 				if not entries:
 					# Directory is empty, we can delete it
 					os.rmdir(current_path)
-					#print(f"Deleted directory: {current_path}")
 				else:
 					# Add directory back to stack to try again later
 					stack.append(current_path)
@@ -89,10 +101,11 @@ def delete_path(path: str):
 		else:
 			try:
 				os.remove(current_path)
-				#print(f"Deleted file: {current_path}")
 			except Exception as e:
 				print(f"Error deleting file {current_path}: {e}")
 
+
+#region handlers
 def handle_contents(client: socket.socket, path: str, request):
 	try:
 		query_params = path.split('?path=')[1] if '?path=' in path else '/'
@@ -101,7 +114,7 @@ def handle_contents(client: socket.socket, path: str, request):
 		contents = list_directory_contents(full_path)
 		response = json.dumps({"contents": contents})
 		client.send(FM_200_JSON)
-		client.send(response)
+		client.sendall(response)
 	except Exception as e:
 		print("Error:", e)
 		client.send(FM_500)
@@ -112,9 +125,6 @@ def handle_upload(client: socket.socket, path: str, request):
 		_, filepath, filesize = path.split(';')
 		filesize = int(filesize) * 2
 		data_read = 0
-
-		#print("Upload: " + str(filepath) + "    size: "  + str(filesize))
-		#print("0%")
 
 		with open(filepath, 'wb') as file:
 			data = request[request.find(b'\r\n\r\n') + 4:]
@@ -278,36 +288,6 @@ def handle_move(client: socket.socket, path: str, request):
 		client.send(FM_500)
 		client.send("Internal Server Error")
 
-def delete_path(path):
-	if not file_path_exists(path):
-		#print(f"Path {path} does not exist.")
-		return
-
-	stack = [path]
-
-	# Iterační průchod pro mazání souborů a podadresářů
-	while stack:
-		current_path = stack.pop()
-
-		if is_directory(current_path):
-			try:
-				entries = list(os.ilistdir(current_path))
-				if not entries:
-					os.rmdir(current_path)
-				else:
-					stack.append(current_path)
-
-					for entry in entries:
-						entry_path = current_path + '/' + entry[0]
-						stack.append(entry_path)
-			except Exception as e:
-				print(f"Error accessing directory {current_path}: {e}")
-		else:
-			try:
-				os.remove(current_path)
-			except Exception as e:
-				print(f"Error deleting file {current_path}: {e}")
-
 def handle_status(client: socket.socket, path: str, request):
 	try:
 		s = os.statvfs('//')
@@ -323,9 +303,13 @@ def handle_status(client: socket.socket, path: str, request):
 
 		response = json.dumps(contents)
 		client.send(FM_200_JSON)
-		client.send(response)
-		#print(response)
+		client.sendall(response)
 	except Exception as e:
 		print("Error:", e)
 		client.send(FM_500)
 		client.send("Internal Server Error")
+
+def handle_reboot(client: socket.socket, path: str, request):
+	import machine
+	machine.reset()
+#endregion

@@ -1,27 +1,31 @@
+"""
+Copyright © 2024 Walkline Wang (https://walkline.wang)
+Gitee: https://github.com/Walkline80/ESP-File_manager
+Forked: https://github.com/mispacek/ESP-File_manager
+"""
 import gc
 from micropython import alloc_emergency_exception_buf
-from utilities import connect_to_wifi
-from web_server import WebServer
-from web_handler import *
 
-
-__version__ = '0.0.2'
 module_folder = ''
+__version__ = '0.0.3'
 
 try:
-	module_folder = __file__.rsplit('/', 1)[0]
+	from utilities import connect_to_wifi
+	from web_server import WebServer
+	from web_handler import *
+except ImportError:
+	from .utilities import connect_to_wifi
+	from .web_server import WebServer
+	from .web_handler import *
 
-	if module_folder == __file__:
-		module_folder = ''
-except NameError:
-	pass
+	module_folder = 'filemanager'
 
 
 alloc_emergency_exception_buf(128)
 gc.collect()
 
 # Start WWW serveru
-webserver = WebServer(web_folder=f'/{module_folder}/www', port=80)
+webserver = WebServer(web_folder=f'/{module_folder}/www', port=8080)
 
 #region Handlers for web_handlers
 @webserver.handle('/contents')
@@ -59,6 +63,10 @@ def _handle_copy(client, path, request):
 @webserver.handle('/status')
 def _handle_status(client, path, request):
 	handle_status(client, path, request)
+
+@webserver.handle('/reboot')
+def _handle_reboot(client, path, request):
+	handle_reboot(client, path, request)
 #endregion
 
 if connect_to_wifi():

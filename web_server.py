@@ -1,10 +1,22 @@
+"""
+Copyright © 2024 Walkline Wang (https://walkline.wang)
+Github: https://github.com/Walkline80/ESP-File_manager
+Forked: https://github.com/mispacek/ESP-File_manager
+"""
 import network
 import socket
 import _thread
-from utilities import (
-	file_path_exists,
-	read_in_chunks,
-)
+
+try:
+	from utilities import (
+		file_path_exists,
+		read_in_chunks,
+	)
+except ImportError:
+	from .utilities import (
+		file_path_exists,
+		read_in_chunks,
+	)
 
 
 class WebServer:

@@ -1,3 +1,8 @@
+"""
+Copyright © 2024 Walkline Wang (https://walkline.wang)
+Gitee: https://github.com/Walkline80/ESP-File_manager
+Forked: https://github.com/mispacek/ESP-File_manager
+"""
 import os
 import network
 from time import sleep_ms

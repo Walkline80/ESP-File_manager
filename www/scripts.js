@@ -1,6 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+/*
+Copyright © 2024 Walkline Wang (https://walkline.wang)
+Gitee: https://github.com/Walkline80/ESP-File_manager
+Forked: https://github.com/mispacek/ESP-File_manager
+*/
+document.addEventListener('DOMContentLoaded', function () {
     loadDirectoryContents('/');
-    
+
     document.getElementById('upload').addEventListener('click', () => document.getElementById('file-upload').click());
     document.getElementById('file-upload').addEventListener('change', handleFileInputChange);
     document.getElementById('download').addEventListener('click', downloadFiles);
@@ -10,8 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('new-folder').addEventListener('click', new_Folder);
     document.getElementById('delete').addEventListener('click', deleteFiles);
     document.getElementById('clear-selection').addEventListener('click', clearSelection);
+    document.getElementById('reboot').addEventListener('click', rebootDevice);
     document.getElementById('popup-close').addEventListener('click', closePopup);
-    
+
     updateStatus();
     setInterval(updateStatus, 5000);  // Update every 5 seconds
 });
@@ -194,14 +200,14 @@ function uploadFileToServer(file, path) {
     return new Promise((resolve, reject) => {
         showNotification(" Uploading " + file.name + " Please wait... ");
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
             const fileSize = event.target.result.byteLength;
             const hexData = hexEncode(event.target.result);
 
             const xhr = new XMLHttpRequest();
             xhr.open("POST", `/upload;${path};${fileSize}`, true);
             xhr.setRequestHeader("Content-Type", "text/plain");
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
                         showNotification("File " + file.name + " uploaded successfully!");
@@ -222,7 +228,6 @@ function hexEncode(buffer) {
     const byteArray = new Uint8Array(buffer);
     return Array.from(byteArray, byte => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('');
 }
-
 
 function resetPopupTimer() {
     clearTimeout(popupTimer);
@@ -275,7 +280,7 @@ function downloadAll(urls) {
 function loadDirectoryContents(path) {
     currentPath = path;
     updateBreadcrumb();
-    
+
     console.log("Updating file list");
 
     if (document.getElementById('popup-overlay').style.display == 'none') {
@@ -399,19 +404,19 @@ function moveTo() {
         fetch(`/move?data=${JSON.stringify({ src: selectedFiles, dest: destination })}`, {
             method: 'POST'
         })
-            .then(function(response) {
-                if(response.ok) {
+            .then(function (response) {
+                if (response.ok) {
                     showNotification("Files moved successfully!");
                     return response.text();
                 }
                 throw new Error('Something went wrong.');
-            })  
-            .then(function(text) {
+            })
+            .then(function (text) {
                 loadDirectoryContents(currentPath);
                 clearSelection();
                 showNotification("Files moved successfully!");
-            })  
-            .catch(function(error) {
+            })
+            .catch(function (error) {
                 showError('Server error: ' + error);
             });
     }
@@ -423,21 +428,21 @@ function new_Folder() {
     new_path = new_path.replace(/\/\//g, '/');
 
     if (folder_name) {
-        fetch(`/newfolder?data=${JSON.stringify({ foldername: new_path})}`, {
+        fetch(`/newfolder?data=${JSON.stringify({ foldername: new_path })}`, {
             method: 'POST'
         })
-            .then(function(response) {
-                if(response.ok) {
+            .then(function (response) {
+                if (response.ok) {
                     return response.text();
                 }
                 throw new Error('Something went wrong.');
-            })  
-            .then(function(text) {
+            })
+            .then(function (text) {
                 loadDirectoryContents(currentPath);
                 clearSelection();
                 showPopup('Directory created successfully!');
-            })  
-            .catch(function(error) {
+            })
+            .catch(function (error) {
                 showError('Server error: ' + error);
             });
     }
@@ -450,19 +455,19 @@ function copyTo() {
         fetch(`/copy?data=${JSON.stringify({ src: selectedFiles, dest: destination })}`, {
             method: 'POST'
         })
-            .then(function(response) {
-                if(response.ok) {
+            .then(function (response) {
+                if (response.ok) {
                     showNotification("Files copied successfully!");
                     return response.text();
                 }
                 throw new Error('Something went wrong.');
-            })  
-            .then(function(text) {
+            })
+            .then(function (text) {
                 loadDirectoryContents(currentPath);
                 clearSelection();
                 showNotification("Files copied successfully!");
-            })  
-            .catch(function(error) {
+            })
+            .catch(function (error) {
                 showError('Server error: ' + error);
             });
     }
@@ -483,18 +488,18 @@ function renameFile() {
         fetch(`/rename?data=${JSON.stringify({ old_name: selectedFiles[0], new_name: new_path })}`, {
             method: 'POST'
         })
-            .then(function(response) {
-                if(response.ok) {
+            .then(function (response) {
+                if (response.ok) {
                     return response.text();
                 }
                 throw new Error('Something went wrong.');
-            })  
-            .then(function(text) {
+            })
+            .then(function (text) {
                 loadDirectoryContents(currentPath);
                 clearSelection();
                 showPopup('File renamed successfully!');
-            })  
-            .catch(function(error) {
+            })
+            .catch(function (error) {
                 showError('Server error: ' + error);
             });
     }
@@ -505,18 +510,18 @@ function deleteFiles() {
     fetch(`/delete?files=${JSON.stringify(selectedFiles)}`, {
         method: 'DELETE'
     })
-        .then(function(response) {
-            if(response.ok) {
+        .then(function (response) {
+            if (response.ok) {
                 return response.text();
             }
             throw new Error('Something went wrong.');
-        })  
-        .then(function(text) {
+        })
+        .then(function (text) {
             loadDirectoryContents(currentPath);
             clearSelection();
             showPopup('Files deleted successfully!');
-        })  
-        .catch(function(error) {
+        })
+        .catch(function (error) {
             showError('Server error: ' + error);
         });
 }
@@ -524,4 +529,9 @@ function deleteFiles() {
 function clearSelection() {
     selectedFiles = [];
     document.querySelectorAll('#file-table input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+}
+
+function rebootDevice() {
+    showLoading("  Rebooting device...  ");
+    fetch('/reboot');
 }
